@@ -34,15 +34,19 @@
 
 (define position
   (lambda (a v u t)
-    YOUR-CODE-HERE))
+    (+ (+ (* .5 (* a (square t)) )
+          (* v t))
+       u)))
 
 ;; you need to complete this procedure, then show some test cases
 
-; (position 0 0 0 0)
-; (position 0 0 20 0)
-; (position 0 5 10 10)
-; (position 2 2 2 2)
-; (position 5 5 5 5)
+(position 0 0 0 0)    ; -> 0
+(position 0 0 20 0)   ; -> 20
+(position 0 5 10 10)  ; -> 60
+(position 2 2 2 2)    ; -> 10
+(position 5 5 5 5)    ; -> 92.5
+(position 0 0 0 100)  ; -> 0
+(position 4 4 4 0)    ; -> 4
 
 
 ;; Problem 2
