@@ -51,15 +51,25 @@
 
 ;; Problem 2
 
+(define quadratic-formula 
+  (lambda (a b c sign)
+    (let ((quad-root (- (square b)
+                        (* 4 (* a c)))))
+    (if (< quad-root 0)
+      false
+      (/ (sign (- b) (sqrt quad-root))
+         (* 2 a))))))
+
 (define root1
-  (lambda (a b c)
-    YOUR-CODE-HERE))
+  (lambda(a b c) (quadratic-formula a b c +)))
 
 (define root2
-  (lambda (a b c)
-    YOUR-CODE-HERE))
+  (lambda(a b c) (quadratic-formula a b c -)))
 
-;; complete these procedures and show some test cases
+(root1 5 3 6)       ; -> false
+(root2 5 3 6)       ; -> false
+(root1 1 3 -4)      ; -> 1
+(root2 1 3 -4)      ; -> -4
 
 ;; Problem 3
 
