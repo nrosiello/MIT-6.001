@@ -75,14 +75,19 @@
 
 (define time-to-impact
   (lambda (vertical-velocity elevation)
-    YOUR-CODE-HERE))
+    (root1 (* -.5 gravity) vertical-velocity elevation)))
+
+(time-to-impact 10 5)  ; -> -.4154...
 
 ;; Note that if we want to know when the ball drops to a particular height r 
 ;; (for receiver), we have
 
 (define time-to-height
   (lambda (vertical-velocity elevation target-elevation)
-    YOUR-CODE-HERE))
+    (time-to-impact vertical-velocity (- elevation target-elevation))))
+
+(time-to-height 10 5 0) ; -> -.4154...
+(time-to-height 10 5 1) ; -> -.3425...
 
 ;; Problem 4
 
