@@ -75,7 +75,7 @@
 
 (define time-to-impact
   (lambda (vertical-velocity elevation)
-    (root1 (* -.5 gravity) vertical-velocity elevation)))
+    (root2 (* -.5 gravity) vertical-velocity elevation)))
 
 (time-to-impact 10 5)  ; -> -.4154...
 
@@ -86,8 +86,8 @@
   (lambda (vertical-velocity elevation target-elevation)
     (time-to-impact vertical-velocity (- elevation target-elevation))))
 
-(time-to-height 10 5 0) ; -> -.4154...
-(time-to-height 10 5 1) ; -> -.3425...
+(time-to-height 10 5 0) ; -> 2.4562...
+(time-to-height 10 5 1) ; -> 2.3833...
 
 ;; Problem 4
 
@@ -98,9 +98,17 @@
   (lambda (deg)
     (/ (*  deg pi) 180.)))
 
+(define travel-time-simple
+  (lambda (elevation velocity angle)
+    (let ((y-vel (* (sin (degree2radian angle))
+                    velocity)))
+      (time-to-impact y-vel elevation))))
+
 (define travel-distance-simple
   (lambda (elevation velocity angle)
-    YOUR-CODE-HERE))
+    (let ((x-vel (* (cos (degree2radian angle))
+                    velocity)))
+      (position 0 x-vel 0 (travel-time-simple elevation velocity angle)))))
 
 ;; let's try this out for some example values.  Note that we are going to 
 ;; do everything in metric units, but for quaint reasons it is easier to think
@@ -123,14 +131,19 @@
     (/ s 3600)))
 
 ;; what is time to impact for a ball hit at a height of 1 meter
+;; what is the distance traveled in each case?
 ;; with a velocity of 45 m/s (which is about 100 miles/hour)
 ;; at an angle of 0 (straight horizontal)
+(travel-time-simple 1 45 0)     ; -> 0.4518 sec
+(travel-distance-simple 1 45 0) ; -> 20.33 m
+
 ;; at an angle of (/ pi 2) radians or 90 degrees (straight vertical)
+(travel-time-simple 1 45 90)     ; -> 9.21 sec
+(travel-distance-simple 1 45 90)     ; -> 0 m 
+
 ;; at an angle of (/ pi 4) radians or 45 degrees
-
-;; what is the distance traveled in each case?
-;; record both in meters and in feet
-
+(travel-time-simple 1 45 45)     ; -> 6.53 sec
+(travel-distance-simple 1 45 45)     ; -> 207.63 m 
 
 ;; Problem 5
 
@@ -143,13 +156,31 @@
 
 (define alpha-increment 0.01)
 
+(define rec-find-best-angle
+  (lambda (velocity elevation current-max-angle current-max-distance current-angle)
+    (let ((current-distance (travel-distance-simple elevation velocity current-angle)))
+      (if (> current-angle 90)
+        current-max-angle
+        (if (> current-distance current-max-distance)
+          (rec-find-best-angle velocity elevation current-angle current-distance (+ current-angle alpha-increment))
+          (rec-find-best-angle velocity elevation current-max-angle current-max-distance (+ current-angle alpha-increment)))))))
+
 (define find-best-angle
   (lambda (velocity elevation)
-    YOUR-CODE-HERE))
+    (rec-find-best-angle velocity elevation 0 0 0)))
 
-;; find best angle
+;; find best angle for velocity of 45 m/s and height of 1 m
+(find-best-angle 45 1) ; -> 44.86 degrees
+
 ;; try for other velocities
+(find-best-angle 90 1) ; -> 44.97 degrees
+(find-best-angle 5 1)  ; -> 36.82 degrees
+
 ;; try for other heights
+(find-best-angle 45 100) ; -> 35.48 degrees
+(find-best-angle 45 0)   ; -> 45.00 degrees
+
+;; result: both the velocity and height affect the optimum angle
 
 ;; Problem 6
 
