@@ -252,7 +252,7 @@
 (define beta (* .5 drag-coeff density (* 3.14159 .25 (square diameter))))
 
 (define integrate
-  (lambda (x0 y0 u0 v0 dt g m beta)
+  (lambda (x0 y0 u0 v0 t0 dt g m beta ret)
     (let ((dx (* u0 dt))
           (dy (* v0 dt))
           (du (* (* (* (/ -1 m) beta)
@@ -262,20 +262,26 @@
                           (sqrt (+ (square u0) (square v0)))))
                  (* -1 dt))))
       (if (< y0 0)
-        x0
+        (ret x0 y0 u0 v0 t0) 
         (integrate (+ x0 dx)
                    (+ y0 dy)
                    (+ u0 du)
                    (+ v0 dv)
-                   dt g m beta)))))
+                   (+ t0 dt)
+                   dt g m beta ret)))))
 
 (define travel-distance
-  (lambda (elevation velocity angle beta)
+  (lambda(elevation velocity angle beta)
+    (travel-fun elevation velocity angle beta 
+                     (lambda(x0 y0 u0 v0 t0) x0))))
+
+(define travel-fun
+  (lambda (elevation velocity angle beta ret)
     (let ((u0 (* velocity 
                  (cos (degree2radian angle))))
           (v0 (* velocity
                  (sin (degree2radian angle)))))
-      (integrate 0 elevation u0 v0 .01 gravity mass beta))))
+      (integrate 0 elevation u0 v0 0 .01 gravity mass beta ret))))
 
 ;; test for an angle of 45 degrees and initial velocities of 45, 40, and 35 m/sec
 (travel-distance 1 45 45 beta) ; -> 92.23 m
@@ -300,13 +306,48 @@
 ;; use, given a velocity, in order to reach a given height (receiver) at a 
 ;; given distance
 
+(define travel-time
+  (lambda(elevation velocity angle beta)
+    (travel-fun elevation velocity angle beta 
+                     (lambda(x0 y0 u0 v0 t0) t0))))
 
-;; a cather trying to throw someone out at second has to get it roughly 36 m
+(define rec-shortest-throwing-time
+  (lambda (velocity target height best-time current-angle)
+    (let ((angle-step .25)
+          (angle-max 90)
+          (close-enough? (lambda(distance target)
+                         (< (abs (- distance target)) 1)))
+          (current-distance (travel-distance height velocity current-angle beta)))
+      (define new-best-time (if (close-enough? current-distance target)
+                              (if (= best-time 0)
+                                (travel-time height velocity current-angle beta)
+                                (min (travel-time height velocity current-angle beta)
+                                     best-time))
+                              best-time))
+
+      (if (> current-angle angle-max)
+        best-time
+        (rec-shortest-throwing-time velocity 
+                                    target 
+                                    height 
+                                    new-best-time 
+                                    (+ current-angle angle-step))))))
+
+(define shortest-throwing-time 
+  (lambda (velocity target height)
+    (rec-shortest-throwing-time velocity target height 0 -90)))
+
+;; a catcher trying to throw someone out at second has to get it roughly 36 m
 ;; (or 120 ft) how quickly does the ball get there, if he throws at 55m/s,
 ;;  at 45m/s, at 35m/s?
+(shortest-throwing-time 55 36 1) ; -> .77 s
+(shortest-throwing-time 45 36 1) ; -> .93 s
+(shortest-throwing-time 35 36 1) ; -> 1.2 s
+;; these seem like reasonable times
 
 ;; try out some times for distances (30, 60, 90 m) or (100, 200, 300 ft) 
 ;; using 45m/s
+(shortest-throwing-time 45 90 1) ; -> 3.59 s
 
 ;; Problem 8
 
