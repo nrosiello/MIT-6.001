@@ -340,15 +340,37 @@
 ;; a catcher trying to throw someone out at second has to get it roughly 36 m
 ;; (or 120 ft) how quickly does the ball get there, if he throws at 55m/s,
 ;;  at 45m/s, at 35m/s?
-(shortest-throwing-time 55 36 1) ; -> .77 s
-(shortest-throwing-time 45 36 1) ; -> .93 s
-(shortest-throwing-time 35 36 1) ; -> 1.2 s
+;(shortest-throwing-time 55 36 1) ; -> .77 s
+;(shortest-throwing-time 45 36 1) ; -> .93 s
+;(shortest-throwing-time 35 36 1) ; -> 1.2 s
 ;; these seem like reasonable times
 
 ;; try out some times for distances (30, 60, 90 m) or (100, 200, 300 ft) 
 ;; using 45m/s
-(shortest-throwing-time 45 90 1) ; -> 3.59 s
+;(shortest-throwing-time 45 90 1) ; -> 3.59 s
 
 ;; Problem 8
+(define travel-distance-with-bounces
+  (lambda(height velocity angle num-bounces)
+    (if (< num-bounces 0)
+      0
+      (+ (travel-distance height velocity angle beta)
+         (travel-distance-with-bounces   0
+                                         (/ velocity 2)
+                                         angle
+                                         (-1+ num-bounces))))))
+
+;; should be the same as travel-distance
+(travel-distance-with-bounces 1 45 45 0) ; -> is indeed the same, 92.23 m
+;; should get progressively longer with more bounces
+(travel-distance-with-bounces 1 45 45 1) ; -> 130.61 m
+(travel-distance-with-bounces 1 45 45 2) ; -> 142.54 m
+(travel-distance-with-bounces 1 45 45 10) ; -> 146.89 m
+;; distance does indeed increase as the number of bounces increases
+
+;; different initial velocities and angles
+(travel-distance-with-bounces 1 20 45 10) ; -> 45.84 m 
+(travel-distance-with-bounces 1 45 25 10) ; -> 130.87 m 
+(travel-distance-with-bounces 1 15 65 10) ; -> 21.24 m
 
 ;; Problem 9
