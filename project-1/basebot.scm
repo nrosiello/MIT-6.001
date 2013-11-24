@@ -253,15 +253,45 @@
 
 (define integrate
   (lambda (x0 y0 u0 v0 dt g m beta)
-    YOUR-CODE-HERE))
+    (let ((dx (* u0 dt))
+          (dy (* v0 dt))
+          (du (* (* (* (/ -1 m) beta)
+                    (sqrt (+ (square u0) (square v0))))
+                 (* u0 dt)))
+          (dv (* (+ g (* (* (/ 1 m) (* beta v0))
+                          (sqrt (+ (square u0) (square v0)))))
+                 (* -1 dt))))
+      (if (< y0 0)
+        x0
+        (integrate (+ x0 dx)
+                   (+ y0 dy)
+                   (+ u0 du)
+                   (+ v0 dv)
+                   dt g m beta)))))
 
 (define travel-distance
-  YOUR-CODE-HERE)
+  (lambda (elevation velocity angle beta)
+    (let ((u0 (* velocity 
+                 (cos (degree2radian angle))))
+          (v0 (* velocity
+                 (sin (degree2radian angle)))))
+      (integrate 0 elevation u0 v0 .01 gravity mass beta))))
 
-
-;; RUN SOME TEST CASES
+;; test for an angle of 45 degrees and initial velocities of 45, 40, and 35 m/sec
+(travel-distance 1 45 45 beta) ; -> 92.23 m
+(travel-distance 1 40 45 beta) ; -> 81.66 m
+(travel-distance 1 35 45 beta) ; -> 70.30 m
+;; all of the above distances seem reasonable given that they are
+;; approximately the size of a baseball field.
 
 ;; what about Denver?
+(define denver-density 1.06)  ; kg/m^3
+(define denver-beta (* .5 drag-coeff denver-density (* 3.14159 .25 (square diameter))))
+(travel-distance 1 45 45 denver-beta) ; -> 99.83 m
+(travel-distance 1 40 45 denver-beta) ; -> 87.72 m
+(travel-distance 1 35 45 denver-beta) ; -> 74.95 m
+;; as expected the ball flies slightly farther in the thinner air in denver
+;; in these examples the effect is around +5-10%
 
 ;; Problem 7
  
