@@ -374,3 +374,24 @@
 (travel-distance-with-bounces 1 15 65 10) ; -> 21.24 m
 
 ;; Problem 9
+(define bounce-velocity 
+  (lambda(elevation velocity angle beta)
+    (travel-fun elevation velocity angle beta 
+                     (lambda(x0 y0 u0 v0 t0) 
+                       (sqrt (+ (square u0) (square v0)))))))
+
+;; redefine distance function with bounces to include new velocity calculation
+(define travel-distance-with-bounces
+  (lambda(height velocity angle num-bounces)
+    (if (< num-bounces 0)
+      0
+      (+ (travel-distance height velocity angle beta)
+         (travel-distance-with-bounces   0
+                                         (bounce-velocity height velocity angle beta)
+                                         angle
+                                         (-1+ num-bounces))))))
+
+;; expect that the results should be reasonably similar to those in problem 8
+(travel-distance-with-bounces 1 45 45 1) ; -> 133.85 m
+(travel-distance-with-bounces 1 45 45 2) ; -> 160.37 m
+;; results above are indeed relatively close to those from problem 8
