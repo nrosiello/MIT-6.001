@@ -76,7 +76,7 @@
   (cond ((empty-history? my-history) "c")
         ((empty-history? (rest-of-plays my-history)) "c")
         ((and (equal? (most-recent-play other-history) "d")
-              (equal? (most-recent-play (rest-of-plays my-history)) "d")) "d")
+              (equal? (most-recent-play (rest-of-plays other-history)) "d")) "d")
         (else "c")))
 
 (test-equal (EYE-FOR-TWO-EYES '() '()) "c")
@@ -86,3 +86,22 @@
 (test-equal (EYE-FOR-TWO-EYES '("d" "d") '("c" "d")) "c")
 (test-equal (EYE-FOR-TWO-EYES '("d" "d") '("c" "c")) "c")
 
+; egalitarian vs. eye-for-two-eyes
+(play-loop EGALITARIAN EYE-FOR-TWO-EYES)
+; score:      3             3
+
+; egalitarian vs. nasty
+(play-loop NASTY EYE-FOR-TWO-EYES)
+; score:   1.08       .98   
+
+; eye-for-eye vs. patsy
+(play-loop EYE-FOR-EYE EYE-FOR-TWO-EYES)
+; score:      3             3 
+
+; eye-for-eye vs. spastic
+(play-loop SPASTIC EYE-FOR-TWO-EYES)
+; score:     3.29        1.81 
+
+;; eye-for-two-eyes does well against strategies that do not try to
+;; defect (eye-for-eye and patsy) but does poorly against strategies 
+;; that frequently defect (nasty and spastic)
