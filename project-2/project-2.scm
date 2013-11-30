@@ -135,3 +135,16 @@
 (test-equal (test-rotating '("a" "a") '("a" "a")) "b")
 (test-equal (test-rotating '("a" "a" "b") '("a" "a" "b")) "a")
 
+;; make-rotating-strategy performance
+;; test combination of nasty and egalitarian
+(define NASTY-EGALITARIAN-ROTATING (MAKE-ROTATING-STRATEGY NASTY EGALITARIAN 1 3))
+
+(play-loop NASTY-EGALITARIAN-ROTATING EYE-FOR-TWO-EYES)
+; score:      3.50                           2.24 
+
+(play-loop NASTY-EGALITARIAN-ROTATING EGALITARIAN) 
+; score:       3.49                       2.24
+
+(play-loop NASTY-EGALITARIAN-ROTATING NASTY)
+; score:       1                        1 
+
