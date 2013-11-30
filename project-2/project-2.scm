@@ -148,3 +148,21 @@
 (play-loop NASTY-EGALITARIAN-ROTATING NASTY)
 ; score:       1                        1 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 7: make-higher-order-spastic
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (make-higher-order-spastic strategies)
+  (lambda(my-history other-history)
+    (let ((total-plays (history-length my-history))
+          (num-strategies (length strategies)))
+      (define i (remainder total-plays num-strategies))
+      ((list-ref strategies i) my-history other-history))))
+
+;; test make-higher-order-spastic
+(define test-higher-order-spastic
+  (make-higher-order-spastic (list strat-a strat-b)))
+
+(test-equal (test-higher-order-spastic '() '()) "a")
+(test-equal (test-higher-order-spastic '("a") '("a")) "b")
+(test-equal (test-higher-order-spastic '("a" "a") '("a" "a")) "a")
