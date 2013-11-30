@@ -166,3 +166,25 @@
 (test-equal (test-higher-order-spastic '() '()) "a")
 (test-equal (test-higher-order-spastic '("a") '("a")) "b")
 (test-equal (test-higher-order-spastic '("a" "a") '("a" "a")) "a")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 8: gentle strategy generator
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (gentle strat gentleness-factor) 
+  (lambda(my-history other-history)
+    (let ((orig-play (strat my-history other-history))
+          (be-gentle? (<= gentleness-factor (random 1.0))))
+      (if (equal? orig-play "c")
+        "c"
+        (if be-gentle?
+          "c"
+          "d")))))
+
+;; test performance of gentle egalitarian
+(define slightly-gentle-Nasty (gentle NASTY .1))
+(define slightly-gentle-Eye-for-Eye (gentle EYE-FOR-EYE .1))
+
+(play-loop slightly-gentle-Nasty slightly-gentle-Eye-for-Eye)
+; score:          3.11                  2.79
+; slightly-gentle-Nasty slightly beats slightly-gentle-Eye-for-Eye.
