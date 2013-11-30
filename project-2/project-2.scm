@@ -69,15 +69,19 @@
 ; compute the correct play.  
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; problem 4: eye-for-two-eyes strategy
+;; problems 4 and 5: eye-n-two-eyes strategies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(define (EYE-FOR-N-EYES num-eyes my-history other-history)
+  (cond ((= num-eyes 0) "d")
+        ((empty-history? other-history) "c")
+        ((equal? (most-recent-play other-history) "c") "c")
+        (else (EYE-FOR-N-EYES (-1+ num-eyes) 
+                              (rest-of-plays my-history)
+                              (rest-of-plays other-history)))))
+
 (define (EYE-FOR-TWO-EYES my-history other-history)
-  (cond ((empty-history? my-history) "c")
-        ((empty-history? (rest-of-plays my-history)) "c")
-        ((and (equal? (most-recent-play other-history) "d")
-              (equal? (most-recent-play (rest-of-plays other-history)) "d")) "d")
-        (else "c")))
+  (EYE-FOR-N-EYES 2 my-history other-history))
 
 (test-equal (EYE-FOR-TWO-EYES '() '()) "c")
 (test-equal (EYE-FOR-TWO-EYES '("c") '("c")) "c")
