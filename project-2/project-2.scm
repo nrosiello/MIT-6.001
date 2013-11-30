@@ -109,3 +109,29 @@
 ;; eye-for-two-eyes does well against strategies that do not try to
 ;; defect (eye-for-eye and patsy) but does poorly against strategies 
 ;; that frequently defect (nasty and spastic)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 6: make-rotating-strategy
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; helper function to determine current length of history
+(define history-length length)
+
+(define (MAKE-ROTATING-STRATEGY strat0 strat1 freq0 freq1)
+  (lambda(my-history other-history)
+    (let ((total-plays (history-length my-history)))
+      (define i (remainder total-plays (+ freq0 freq1)))
+      (if (< i freq0)
+        (strat0 my-history other-history)
+        (strat1 my-history other-history)))))
+
+;; test make-rotating-strategy
+(define (strat-a my-history other-history) "a")
+(define (strat-b my-history other-history) "b")
+(define test-rotating (MAKE-ROTATING-STRATEGY strat-a strat-b 2 1))
+
+(test-equal (test-rotating '() '()) "a")
+(test-equal (test-rotating '("a") '("a")) "a")
+(test-equal (test-rotating '("a" "a") '("a" "a")) "b")
+(test-equal (test-rotating '("a" "a" "b") '("a" "a" "b")) "a")
+
