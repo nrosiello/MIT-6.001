@@ -239,3 +239,40 @@
 ;; play tough eye-for-eye against nasty and patsy
 (play-loop-3 tough-Eye-for-eye NASTY-3 PATSY-3)
 ; score:        2.99           3.02   .02
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 12: history summary generator
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (make-history-summary history0 history1 history2)
+  (define (opp-play-history target-opp-play accum hist0 hist1 hist2)
+    (define (one-play-left?) (empty-history? (rest-of-plays hist0)))
+    (define (zero-plays-left?) (empty-history? hist0))
+    (define (opp-plays)
+      (let ((p1 (most-recent-play (rest-of-plays hist1)))
+            (p2 (most-recent-play (rest-of-plays hist2))))
+        (apply string-append (sort (list p1 p2) string<?))))
+    (define (is-target-play?) (string=? target-opp-play (opp-plays)))
+    (define (curr-play) (most-recent-play hist0))
+    (cond ((zero-plays-left?) accum)
+          ((one-play-left?) accum)
+          (else 
+            (opp-play-history target-opp-play 
+                              (if (is-target-play?)
+                                (if (string=? (curr-play) "c")
+                                (list (1+ (car accum)) (cadr accum) (1+ (caddr accum)))
+                                (list (car accum) (1+ (cadr accum)) (1+ (caddr accum))))
+                                accum)
+                              (rest-of-plays hist0)
+                              (rest-of-plays hist1)
+                              (rest-of-plays hist2)))))
+  (list (opp-play-history "cc" '(0 0 0) history0 history1 history2)
+        (opp-play-history "cd" '(0 0 0) history0 history1 history2)
+        (opp-play-history "dd" '(0 0 0) history0 history1 history2)))
+
+(test-equal (make-history-summary '() '() '()) '((0 0 0) (0 0 0) (0 0 0))) 
+(test-equal (make-history-summary '("c") '("c") '("c")) '((0 0 0) (0 0 0) (0 0 0))) 
+(test-equal (make-history-summary (list "c" "c" "d" "d" "c" "d" "c" "c")
+                                  (list "c" "c" "c" "d" "d" "c" "d" "c")
+                                  (list "c" "c" "d" "d" "d" "c" "c" "c"))
+            '((3 0 3) (1 1 2) (0 2 2)))
