@@ -11,7 +11,7 @@
 
 (define (play-loop strat0 strat1)
   (define (play-loop-iter strat0 strat1 count history0 history1 limit)
-    (cond ((= count limit) (print-out-results (cons history0 history1) limit))
+    (cond ((= count limit) (print-out-results (list history0 history1) limit))
 	  (else (let ((result0 (strat0 history0 history1))
 		      (result1 (strat1 history1 history0)))
 		  (play-loop-iter strat0 strat1 (+ count 1)
@@ -30,7 +30,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (print-out-results histories number-of-games)
-  (let ((scores (get-scores (car histories) (cdr histories))))
+  (let ((scores (get-scores histories)))
     (define (print-scores-rec scores player)
       (if (null? scores)
         (newline)
@@ -41,17 +41,26 @@
           (print-scores-rec (cdr scores) (1+ player)))))
     (print-scores-rec scores 1)))
 
-(define (get-scores history0 history1)
-  (define (get-scores-helper history0 history1 score0 score1)
-    (cond ((empty-history? history0)
-	   (list score0 score1))
-	  (else (let ((game (make-play (most-recent-play history0)
-				       (most-recent-play history1))))
-		  (get-scores-helper (rest-of-plays history0)
-				     (rest-of-plays history1)
-				     (+ (get-player-points 0 game) score0)
-				     (+ (get-player-points 1 game) score1))))))
-  (get-scores-helper history0 history1 0 0))
+;; two utility functions for conversion to a generic number of players
+(define (most-recent-game histories) (map car histories))
+(define (rest-of-games histories) (map cdr histories))
+
+(define (get-scores histories)
+  (define num-players (length histories))
+  
+  (define (add-new-game scores game)
+     (map (lambda(p) 
+            (+ (list-ref scores p)
+               (get-player-points p game)))
+            (iota num-players 0)))
+  
+  (define (get-scores-helper histories scores)
+    (cond ((empty-history? (car histories))
+	    scores)
+	  (else (let ((game (most-recent-game histories)))
+		  (get-scores-helper (rest-of-games histories)
+                         (add-new-game scores game))))))
+  (get-scores-helper histories (make-list num-players 0)))
 
 (define (get-player-points num game)
   (list-ref (get-point-list game) num))
