@@ -276,3 +276,25 @@
                                   (list "c" "c" "c" "d" "d" "c" "d" "c")
                                   (list "c" "c" "d" "d" "d" "c" "c" "c"))
             '((3 0 3) (1 1 2) (0 2 2)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 13: probability of cooperation summary
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (get-probability-of-c hist-summary)
+  (define (play-prob p)
+    (if (= (caddr p) 0)
+      '()
+      (/ (/ (car p) (caddr p)) 1.0)))
+  (map play-prob hist-summary))
+
+(define summary (make-history-summary
+                 (list "c" "c" "c" "c")
+                 (list "d" "d" "d" "c")
+                 (list "d" "d" "c" "c")))
+(test-equal (get-probability-of-c summary) '(1. 1. 1.))
+(define new-summary (make-history-summary
+                     (list "c" "c" "c" "d" "c")
+                     (list "d" "c" "d" "d" "c")
+                     (list "d" "c" "c" "c" "c")))
+(test-equal (get-probability-of-c new-summary) (list .5 1. (quote ())))
