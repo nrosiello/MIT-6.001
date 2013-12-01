@@ -21,6 +21,19 @@
   (play-loop-iter strat0 strat1 0 the-empty-history the-empty-history
 		  (+ 90 (random 21))))
 
+(define (play-loop-3 strat0 strat1 strat2)
+  (define (play-loop-iter strat0 strat1 strat2 count history0 history1 history2 limit)
+    (cond ((= count limit) (print-out-results (list history0 history1 history2) limit))
+	  (else (let ((result0 (strat0 history0 history1 history2))
+		      (result1 (strat1 history1 history0 history2))
+          (result2 (strat2 history2 history0 history1)))
+		  (play-loop-iter strat0 strat1 strat2 (+ count 1)
+				  (extend-history result0 history0)
+				  (extend-history result1 history1)
+				  (extend-history result2 history2)
+				  limit)))))
+  (play-loop-iter strat0 strat1 strat2 0 the-empty-history the-empty-history the-empty-history
+		  (+ 90 (random 21))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;

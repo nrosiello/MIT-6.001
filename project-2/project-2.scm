@@ -189,4 +189,53 @@
 ; score:          3.11                  2.79
 ; slightly-gentle-Nasty slightly beats slightly-gentle-Eye-for-Eye.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 11: three player strategy generator
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; problem 11 is before problems 9 and 10 because those problems 
+;; use the make-combined-strategies function
+
+(define (make-combined-strategies strat1 strat2 combine)
+  (lambda(my-history other-history-1 other-history-2)
+    (let ((r1 (strat1 my-history other-history-1))
+          (r2 (strat2 my-history other-history-2)))
+      (combine r1 r2))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problems 9 and 10: 3-player prisoner dilemma
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; several functions modified in prisoner.scm to accomadate
+; 3-player games
+
+;; simple 3-player strategies
+(define (Patsy-3 my-history other-history-1 other-history-2)
+  (PATSY '() '()))
+(define (Nasty-3 my-history other-history-1 other-history-2)
+  (NASTY '() '()))
+(define (Spastic-3 my-history other-history-1 other-history-2)
+  (SPASTIC '() '()))
+
+;; tough eye-for-eye strategy defects if either other player defected previously
+(define tough-Eye-for-eye
+  (make-combined-strategies EYE-FOR-EYE EYE-FOR-EYE
+    (lambda(r1 r2) (if (or (string=? r1 "d") (string=? r2 "d")) "d" "c"))))
+(test-equal (tough-Eye-for-eye '() '() '()) "c")
+(test-equal (tough-Eye-for-eye '("c") '("c") '("d")) "d")
+
+;; soft eye-for-eye strategy defects if either other player defected previously
+(define soft-Eye-for-eye
+  (make-combined-strategies EYE-FOR-EYE EYE-FOR-EYE
+    (lambda(r1 r2) (if (and (string=? r1 "d") (string=? r2 "d")) "d" "c"))))
+(test-equal (soft-Eye-for-eye '() '() '()) "c")
+(test-equal (soft-Eye-for-eye '("c") '("c") '("d")) "c")
+(test-equal (soft-Eye-for-eye '("c") '("d") '("d")) "d")
+
+;; play tough eye-for-eye against two soft-eye-for-eye players
+(play-loop-3 tough-Eye-for-eye soft-eye-for-eye soft-eye-for-eye)
+; score:         4                  4                 4
+
+;; play tough eye-for-eye against nasty and patsy
+(play-loop-3 tough-Eye-for-eye NASTY-3 PATSY-3)
+; score:        2.99           3.02   .02
