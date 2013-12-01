@@ -298,3 +298,68 @@
                      (list "d" "c" "d" "d" "c")
                      (list "d" "c" "c" "c" "c")))
 (test-equal (get-probability-of-c new-summary) (list .5 1. (quote ())))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; problem 14: deciphering other player's strategy
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; in expected-values: #f = don't care 
+;                      X = actual-value needs to be #f or X 
+(define (test-entry expected-values actual-values) 
+   (cond ((null? expected-values) (null? actual-values)) 
+         ((null? actual-values) #f) 
+         ((or (not (car expected-values)) 
+              (not (car actual-values)) 
+              (= (car expected-values) (car actual-values))) 
+          (test-entry (cdr expected-values) (cdr actual-values))) 
+         (else #f))) 
+
+(define (is-he-a-fool? hist0 hist1 hist2) 
+   (test-entry (list 1 1 1) 
+               (get-probability-of-c 
+                (make-history-summary hist0 hist1 hist2))))
+
+(define (could-he-be-a-fool? hist0 hist1 hist2)
+  (test-entry (list 1 1 1)
+              (map (lambda (elt) 
+                      (cond ((null? elt) 1)
+                            ((= elt 1) 1)  
+                            (else 0)))
+                   (get-probability-of-c (make-history-summary hist0 
+                                                               hist1
+                                                               hist2)))))
+
+;; detect soft-eye-for-eye strategy
+(define (detect-soft-Eye-for-eye hist0 hist1 hist2)
+  (test-entry '(1 1 0)
+              (get-probability-of-c (make-history-summary hist0 hist1 hist2))))
+
+; test positive detection
+(test-equal (detect-soft-Eye-for-eye
+                     (list "d" "c" "c" "c" "c")
+                     (list "d" "d" "d" "d" "c")
+                     (list "d" "d" "c" "c" "c")) true)
+; test negative detection
+(test-equal (detect-soft-Eye-for-eye
+                     (list "c" "c" "c" "c" "c")
+                     (list "d" "d" "d" "d" "c")
+                     (list "d" "d" "c" "c" "c")) false)
+
+;; new strategy that detects patsies
+(define (dont-tolerate-fools my-history other-history-1 other-history-2)
+  (if (<= (length my-history) 10)
+    "c"
+    (if (and (could-he-be-a-fool? other-history-1 my-history other-history-2)
+             (could-he-be-a-fool? other-history-2 my-history other-history-1))
+      "d"
+      "c")))
+
+;; test new patsy detection strategy
+(play-loop-3 dont-tolerate-fools PATSY-3 PATSY-3)
+; score:          4.88             2.24   2.24
+
+(play-loop-3 dont-tolerate-fools tough-Eye-for-eye soft-Eye-for-eye)
+; score:            3.94                3.97             3.91
+
+;; indeed the strategy detects when the other opponents are fools and does
+;; exploit them
