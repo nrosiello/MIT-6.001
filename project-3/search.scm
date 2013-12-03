@@ -1,3 +1,4 @@
+#|
 ;;; SEARCH.SCM
 ;;; MIT 6.001                               Spring, 2005
 ;;; PROJECT 3
@@ -179,7 +180,7 @@
 
 ;; you will need to write a similar search procedure that handles cycles
 
-
+|#
 ;;;------------------------------------------------------------
 ;;; Index Abstraction
 ;;;
@@ -227,26 +228,22 @@
         (cadr index-entry)
         '())))
 
-;; TO BE IMPLEMENTED
-;;(define (add-to-index! index key value) ; Index,Key,Val -> Index
-;;  (let ((index-entry (find-entry-in-index index key)))
-;;    (if (null? index-entry)
-;;      ;; no entry -- create and insert a new one...
-;;	;... TO BE IMPLEMENTED
-;;
-;;      ;; entry exists -- insert value if not already there...
-;;	;... TO BE IMPLEMENTED
-;;	))
-;;  index)
+(define (add-to-index! index key value) ; Index,Key,Val -> Index
+  (let ((index-entry (find-entry-in-index index key)))
+    (if (null? index-entry)
+      ;; no entry -- create and insert a new one...
+      (append! index (list (list key (list value))))
+      ;; entry exists -- insert value if not already there...
+      (append! (cadr index-entry) (list value))))
+  index)
 
 ;; Testing
-;; (define test-index (make-index))
-;; (add-to-index! test-index 'key1 'value1)
-;; (add-to-index! test-index 'key2 'value2)
-;; (add-to-index! test-index 'key1 'another-value1)
-;; 
-;; (find-in-index test-index 'key1)
-;; (find-in-index test-index 'key2)
+(define test-index (make-index))
+(add-to-index! test-index 'key1 'value1)
+(add-to-index! test-index 'key2 'value2)
+(add-to-index! test-index 'key1 'another-value1)
+(test-equal (find-in-index test-index 'key1) '(value1 another-value1))
+(test-equal (find-in-index test-index 'key2) '(value2))
 
 
 ;;------------------------------------------------------------
