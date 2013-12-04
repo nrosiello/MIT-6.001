@@ -1,4 +1,3 @@
-#|
 ;;; SEARCH.SCM
 ;;; MIT 6.001                               Spring, 2005
 ;;; PROJECT 3
@@ -173,14 +172,6 @@
 	  graph))
 
 
-; (DFS-simple 'a
-;             (lambda (node) (eq? node 'l))
-;             test-graph)
-  
-
-;; you will need to write a similar search procedure that handles cycles
-
-|#
 ;;;------------------------------------------------------------
 ;;; Index Abstraction
 ;;;
