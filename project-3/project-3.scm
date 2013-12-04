@@ -146,3 +146,77 @@
             '(http://sicp.csail.mit.edu/))
 (test-equal (find-in-index the-web-index '*magic*)
             '())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 5: crawling the web to build an index
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; create a new set of search procedures that allows a procedure
+;; to be run at each node
+(define (search-with-action initial-state goal? successors merge graph action)
+  (define (new-node? node)
+    (let ((new? 
+            (null? (find-in-index nodes-searched node))))
+      (if new?
+          (add-to-index! nodes-searched node '()))
+      new?))
+  (define (search-inner still-to-do)
+    (if (null? still-to-do)
+	#f
+	(let ((current (car still-to-do)))
+	  (if *search-debug*
+	      (write-line (list 'now-at current)))
+    (if (new-node? current)
+      (begin
+        (action current)
+	      (if (goal? current)
+	        #t
+	        (search-inner
+	         (merge (successors graph current) (cdr still-to-do)))))
+      (search-inner (cdr still-to-do))))))
+  (define nodes-searched (make-index))
+  (search-inner (list initial-state)))
+
+;; revised DFS with actions 
+(define (DFS-action start goal? graph action)
+  (search-with-action start
+	  goal?
+	  find-node-children
+	  (lambda (new old) (append new old))
+	  graph
+    action))
+
+;; revised BFS with actions 
+(define (BFS-action start goal? graph action)
+  (search-with-action start
+     goal?
+     find-node-children
+     (lambda (new old) (append old new))
+     graph
+     action))
+
+;; test BFS with actions
+(write-line "Testing BFS with actions on the web graph")
+(BFS-action 'http://sicp.csail.mit.edu/
+     (lambda (node) #f)
+     the-web
+     (lambda (node) (write-line (list 'action-at node))))
+
+;; given a web graph, create an index from words -> URLs
+(define (make-web-index web start-url)
+  (define web-index (make-index))
+  (BFS-action start-url
+     (lambda (node) #f)
+     web
+     (lambda (node) (add-document-to-index! web-index
+                                            web
+                                            node)))
+  (lambda (word)
+    (find-in-index web-index word)))
+   
+;; web index test cases
+(define find-documents (make-web-index the-web 'http://sicp.csail.mit.edu/))
+(test-equal (find-documents 'collaborative)
+            '(http://sicp.csail.mit.edu/ http://sicp.csail.mit.edu/psets))
+(test-equal (find-documents '*fake-word*)
+            '())
