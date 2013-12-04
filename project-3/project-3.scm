@@ -114,3 +114,35 @@
 (BFS 'http://sicp.csail.mit.edu/
      (lambda (node) #f)
      the-web)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 3: index abstraction
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; same as warm-up exercise 1, code and tests are in search.scm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 4: a web index
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; add-document-to-index!: Index, Web, URL
+(define (add-document-to-index! index web url)
+  (define (add-documents-inner! words)
+    (if (null? words)
+      '()
+      (let ((new-word (car words))
+            (remaining-words (cdr words)))
+        (add-to-index! index new-word url)
+        (add-documents-inner! remaining-words))))
+  (add-documents-inner! (find-URL-text web url)) 
+)
+
+;; test cases for add-document-to-index
+(define the-web-index (make-index))
+(add-document-to-index! the-web-index
+                        the-web
+                        'http://sicp.csail.mit.edu/)
+(test-equal (find-in-index the-web-index 'help)
+            '(http://sicp.csail.mit.edu/))
+(test-equal (find-in-index the-web-index '*magic*)
+            '())

@@ -307,7 +307,6 @@
 ;; web, and then key each of the words in the
 ;; text into the index.
 
-;; TO BE IMPLEMENTED
 ;; add-document-to-index!: Index, Web, URL
 ;; (define (add-document-to-index! index web url)
 ;; ...
