@@ -220,3 +220,55 @@
             '(http://sicp.csail.mit.edu/ http://sicp.csail.mit.edu/psets))
 (test-equal (find-documents '*fake-word*)
             '())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 6: dynamic web search
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; extracted web crawling function to be used for search-any and search-all
+(define (search-web web start-node word stop?)
+  (define results '())
+  (define stop-node? (stop? results))
+  (define append-result-at-node
+    (lambda (node)
+      (define (append-result)
+        (if (null? results)
+          (set! results (list node))
+          (append! results (list node))))
+      (if (memq word (find-URL-text the-web node))
+        (append-result))))
+
+  (BFS-action start-node 
+     stop-node? 
+     web
+     append-result-at-node)
+  results)
+
+;; search-any crawls the web breadth-first looking for the first document
+;; containing the desired word
+(define (search-any web start-node word)
+  (search-web web
+     start-node
+     word
+     (lambda (results)
+       (lambda (node)
+         (not (null? results))))))
+
+;; search-all crawls the web looking for all documents that contain the
+;; desired word
+(define (search-all web start-node word)
+  (search-web web
+     start-node
+     word
+     (lambda (results)
+       (lambda (node) #f))))
+
+;; crawling functions test cases
+(test-equal (search-any the-web 'http://sicp.csail.mit.edu/ 'collaborative)
+            '(http://sicp.csail.mit.edu/))
+(test-equal (search-any the-web 'http://sicp.csail.mit.edu/ '*fake-word*)
+            '())
+(test-equal (search-all the-web 'http://sicp.csail.mit.edu/ 'collaborative)
+            '(http://sicp.csail.mit.edu/ http://sicp.csail.mit.edu/psets))
+(test-equal (search-all the-web 'http://sicp.csail.mit.edu/ '*fake-word*)
+            '())
