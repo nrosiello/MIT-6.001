@@ -203,7 +203,7 @@
      (lambda (node) (write-line (list 'action-at node))))
 
 ;; given a web graph, create an index from words -> URLs
-(define (make-web-index web start-url)
+(define (raw-web-index web start-url)
   (define web-index (make-index))
   (BFS-action start-url
      (lambda (node) #f)
@@ -211,8 +211,11 @@
      (lambda (node) (add-document-to-index! web-index
                                             web
                                             node)))
+  web-index)
+
+(define (make-web-index web start-url)
   (lambda (word)
-    (find-in-index web-index word)))
+    (find-in-index (raw-web-index web start-url) word)))
    
 ;; web index test cases
 (define find-documents (make-web-index the-web 'http://sicp.csail.mit.edu/))
@@ -226,20 +229,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; extracted web crawling function to be used for search-any and search-all
-(define (search-web web start-node word stop?)
+(define (search-web web start-node word any?)
   (define results '())
-  (define stop-node? (stop? results))
+  (define (stop? node)
+    (if any?
+      (not (null? results))
+      #f))
   (define append-result-at-node
     (lambda (node)
       (define (append-result)
         (if (null? results)
           (set! results (list node))
           (append! results (list node))))
-      (if (memq word (find-URL-text the-web node))
+      (if (memq word (find-URL-text web node))
         (append-result))))
 
   (BFS-action start-node 
-     stop-node? 
+     stop? 
      web
      append-result-at-node)
   results)
@@ -250,9 +256,7 @@
   (search-web web
      start-node
      word
-     (lambda (results)
-       (lambda (node)
-         (not (null? results))))))
+     #t))
 
 ;; search-all crawls the web looking for all documents that contain the
 ;; desired word
@@ -260,8 +264,7 @@
   (search-web web
      start-node
      word
-     (lambda (results)
-       (lambda (node) #f))))
+     #f))
 
 ;; crawling functions test cases
 (test-equal (search-any the-web 'http://sicp.csail.mit.edu/ 'collaborative)
@@ -272,3 +275,99 @@
             '(http://sicp.csail.mit.edu/ http://sicp.csail.mit.edu/psets))
 (test-equal (search-all the-web 'http://sicp.csail.mit.edu/ '*fake-word*)
             '())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 7: timing of searches using crawling vs. a pre-built index
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define random-web (generate-random-web 150))
+
+;; test time to search dynamically
+;;(write-line (list 'search-any-help
+(display "search-any with a value in the web")
+(timed search-any random-web '*start* 'help)
+(display "\nsearch-any with a value not in the web")
+(timed search-any random-web '*start* 'Susanhockfield)
+
+(display "\nsearch-all with a value in the web")
+(timed search-all random-web '*start* 'help)
+
+;; as expected, it takes as long to search all values for a particular value
+;; contained in the web (i.e. help) as it does to search for any node containing
+;; a value not in the web (i.e. Susanhockfield).  This is because both procedures
+;; must visit all nodes.
+
+;; timing for searching the web using an index
+(define find-in-random-web (make-web-index random-web '*start*))
+
+(display "\nuse an index to find all documents containing help")
+(timed find-in-random-web 'help)
+(display "\nuse an index to find all documents containing Susanhockfield")
+(timed find-in-random-web 'Susanhockfield)
+
+;; using an index, the time to search all documents is too small to measure using
+;; the provided timing function, meaning that it is signifiantly smaller than
+;; that of crawling the web dynamically.  this is to be expected, as the initial
+;; work of creating the index was done with the goal of faster searching times.
+;; in the real world, this query time would be important because the user would
+;; need to wait for the search to be completed before viewing the results.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 8: a better indexing scheme
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (optimize-index ind)
+  (define (get-keys) 
+    (map (lambda(n) (car n)) (cdr ind))) 
+  (define (keys->sorted-vector keys)
+    (sort! (list->vector keys) symbol<?))
+  (let ((keys-vector (keys->sorted-vector (get-keys))))
+    (list 'optimized-index
+          (vector-map (lambda(n) (list n (find-in-index ind n))) keys-vector))))
+
+;; test the index optimization
+(define optimized-test-index (optimize-index test-index))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 9: find entry in optimized index
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define (find-entry-in-optimized-index optind k)
+  ; type: Optimized-Index, Key -> List<Val>
+  ; k is a symbol representing the key we are looking for
+  ; this procedure does a binary search, so it takes O(log n)
+  ; time where n is the number of keys in optind
+  (let ((entry (vector-binary-search (cadr optind) symbol<? car k)))
+    (if entry
+      (cadr entry)
+      '())))
+
+;; helper procedure to run the timing function for many iterations
+(define (time-many-trials proc . args)
+  (define num-trials 100000)
+  (define (time-many-iter n)
+    (apply proc args)
+    (if (= 0 n)
+      '()
+      (time-many-iter (-1+ n))))
+  (timed time-many-iter num-trials))
+
+;; test to see if the new index is faster on the random web graph
+(define random-web-index (raw-web-index random-web '*start*))
+(define random-web-optimized-index (optimize-index random-web-index))
+
+;; time the original vs optimal indexes
+(display "\nOriginal index:")
+(time-many-trials find-entry-in-index random-web-index 'collaborative)
+(display "\nOptimized index:")
+(time-many-trials find-entry-in-optimized-index random-web-optimized-index 'collaborative)
+
+;; sample results:
+;; Original index:
+;; time expended: .5099999999999998
+;; Optimized index:
+;; time expended: .31000000000000005
+;;
+;; the optimized index using binary search is indeed faster than the original
+;; original implementation that uses a linear search.  as the size of the index
+;; (i.e. number of keys) grows, one would expect this advantage to increase.

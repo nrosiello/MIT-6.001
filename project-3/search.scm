@@ -2,7 +2,7 @@
 ;;; MIT 6.001                               Spring, 2005
 ;;; PROJECT 3
 
-(define *search-debug* #t)         ; flag that shows search progress
+(define *search-debug* #f)         ; flag that shows search progress
 
 ;;; Searching and Indexing the World Wide Web.
 ;;;
