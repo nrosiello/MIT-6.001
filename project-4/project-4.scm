@@ -88,24 +88,30 @@
 ;; testing of two new methods for people:
 ;; HAS-A method to determine if a person has any things of a given type
 ;; HAS-A-THING-NAMED method to determine if person has things with a given name
-(begin
-  (setup 'nick)
-  (define loc (ask me 'location))
-  (define bob (create-person 'bob loc))
-  (define spell-1 (create-spell 'spell-1 loc '() '()))
-  (define spell-2 (create-spell 'spell-2 loc '() '()))
+(setup 'nick)
+(define loc (ask me 'location))
+(define bob (create-person 'bob loc))
+(define spell-1 (create-spell 'spell-1 loc '() '()))
+(define spell-2 (create-spell 'spell-2 loc '() '()))
 
-  ;; test that bob initially has no spells
-  (test-equal (ask bob 'HAS-A 'spell) '())
+;; test that bob initially has no spells
+(test-equal (ask bob 'HAS-A 'spell) '())
 
-  (ask bob 'ADD-THING spell-1)
-  (ask bob 'ADD-THING spell-2)
+(ask bob 'ADD-THING spell-1)
+(ask bob 'ADD-THING spell-2)
   
-  ;; test that now bob has spells
-  (test-equal (ask bob 'HAS-A 'spell) (list spell-2 spell-1))
-  (test-equal (ask bob 'HAS-A 'fake-type) (list))
+;; test that now bob has spells
+(test-equal (ask bob 'HAS-A 'spell) (list spell-2 spell-1))
+(test-equal (ask bob 'HAS-A 'fake-type) (list))
 
-  ;; test has-a-thing-named method
-  (test-equal (ask bob 'HAS-A-THING-NAMED 'fake-name) (list))
-  (test-equal (ask bob 'HAS-A-THING-NAMED 'spell-1) (list spell-1))
-)
+;; test has-a-thing-named method
+(test-equal (ask bob 'HAS-A-THING-NAMED 'fake-name) (list))
+(test-equal (ask bob 'HAS-A-THING-NAMED 'spell-1) (list spell-1))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 3
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; test the feel-the-force procedure that displays the name and location of all
+;; the people in the world
+(ask me 'FEEL-THE-FORCE)

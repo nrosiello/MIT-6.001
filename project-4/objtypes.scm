@@ -527,6 +527,12 @@
       'DIE
       (lambda (perp)
 	(ask self 'SAY (list "I am slain!"))
-	(ask person-part 'DIE perp)))
-     
+	(ask person-part 'DIE perp))
+      'FEEL-THE-FORCE
+      (lambda ()
+        (let ((print-name-and-loc (lambda(person)
+           (display-message (list (ask person 'NAME)
+                                  "is at"
+                                  (ask (ask person 'LOCATION) 'NAME))))))
+        (for-each print-name-and-loc (all-people)))))
      person-part)))

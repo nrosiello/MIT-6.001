@@ -147,7 +147,7 @@
        (create-clock-callback 'tick-printer clock 'PRINT-TICK))
   (let ((rooms (create-world)))
     (set! chamber-of-stata (instantiate-spells))
-    ;(populate-spells rooms)
+    (populate-spells rooms)
 
     (populate-players rooms)
 
