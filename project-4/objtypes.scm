@@ -597,3 +597,36 @@
             (ask caster 'EMIT (list "Nobody around to use the spell on!"))
             (ask self 'ZAP target)))))
      mobile-part)))
+
+;;
+;; wit-student 
+;; a subclass of autonomous-person with a wand that tries to cast spells on
+;; every clock tick
+;;
+(define (create-wit-student name birthplace activity miserly)
+  (create-instance wit-student name birthplace activity miserly))
+
+(define (wit-student self name birthplace activity miserly)
+  (let ((auto-part (autonomous-person self name birthplace activity miserly)))
+    (make-handler
+     'wit-student
+     (make-methods
+      'INSTALL
+      (lambda ()
+	(ask auto-part 'INSTALL)
+  (ask self 'ADD-THING (create-wand 'wit-wand (ask self 'LOCATION)))
+	(ask clock 'ADD-CALLBACK
+	     (create-clock-callback 'attempt-zap self
+				    'ATTEMPT-ZAP)))
+      'ATTEMPT-ZAP
+      (lambda () 
+  (let ((wand (ask self 'HAS-A 'wand))
+        (other-people (ask self 'PEOPLE-AROUND)))
+    (cond ((null? wand) 'no-wand
+           (null? other-people) (ask (first wand) 'WAVE)
+           (else (ask (first wand) 'ZAP (random-list-entry other-people)))))))
+      'DIE
+      (lambda (perp)
+	(ask clock 'REMOVE-CALLBACK self 'attempt-zap)
+	(ask auto-part 'DIE perp)))
+     auto-part)))

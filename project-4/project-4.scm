@@ -163,3 +163,37 @@
 
 ;; test wave method that uses the spell against a random person in the room
 (ask wand-1 'WAVE)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 6
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setup 'nick)
+(define (get-spell-from-stata name) (first (ask chamber-of-stata 'HAS-A-THING-NAMED name)))
+(define boil-spell (get-spell-from-stata 'boil-spell))
+(define slug-spell (get-spell-from-stata 'slug-spell))
+(define wind-of-doom (get-spell-from-stata 'wind-of-doom)) 
+(define possibly-destroy-spell (get-spell-from-stata 'possibly-destroy-spell))
+(define not-a-person (create-mobile-thing 'not-a-person test-place))
+
+;; test that the two spells cannot be used on non-person objects 
+(ask boil-spell 'USE person-1 not-a-person)
+(ask slug-spell 'USE person-1 not-a-person)
+
+;; test that the two spells can be used on person objects
+(ask boil-spell 'USE person-1 person-2)
+(ask slug-spell 'USE person-1 person-2)
+
+;; testing the wind-of-doom spell
+(ask wind-of-doom 'USE person-1 not-a-person)
+(ask wind-of-doom 'USE person-1 person-2)
+
+;; testing the possibly-destroy spell
+(ask possibly-destroy-spell 'USE person-1 not-a-person) 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 7
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define test-wit-student (create-wit-student 'test-wit-student test-place 10 10))
+(ask test-wit-student 'ATTEMPT-ZAP)

@@ -91,15 +91,37 @@
      chamber
      "habooic katarnum"
      (lambda (caster target)
-       (ask target 'EMIT
-	    (list (ask target 'NAME) "grows boils on their nose"))))
+       (if (ask target 'IS-A 'person)
+          (ask target 'EMIT
+	          (list (ask target 'NAME) "grows boils on their nose"))
+          (ask caster 'EMIT
+             (list "Can only use against people!")))))
     (create-spell
      'slug-spell
      chamber
      "dagnabbit ekaterin"
      (lambda (caster target)
-       (ask target 'EMIT (list "A slug comes out of" (ask target 'NAME) "'s mouth."))
-       (create-mobile-thing 'slug (ask target 'LOCATION))))
+       (if (ask target 'IS-A 'person)
+          (begin 
+            (ask target 'EMIT (list "A slug comes out of" (ask target 'NAME) "'s mouth."))
+            (create-mobile-thing 'slug (ask target 'LOCATION)))
+          (ask caster 'EMIT 
+            (list "Can only be used against people!")))))
+    (create-spell
+     'wind-of-doom
+     chamber
+     "a cold wind"
+     (lambda (caster target)
+       (if (ask target 'IS-A 'person)
+            (ask target 'SUFFER (random 3) caster)
+            (ask target 'DESTROY))))
+    (create-spell
+     'possibly-destroy-spell
+     chamber
+     "possibly destroying..."
+     (lambda (caster target)
+       (if (eq? (random 2) 1)
+         (ask target 'DESTROY))))
     chamber))
 
 (define (populate-spells rooms)
@@ -109,7 +131,7 @@
 
 (define (populate-players rooms)
   (let* ((students (map (lambda (name)
-			  (create-autonomous-person name
+			  (create-wit-student name
 						    (pick-random rooms)
 						    (random-number 3)
 						    (random-number 3)))
