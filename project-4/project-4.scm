@@ -115,3 +115,51 @@
 ;; test the feel-the-force procedure that displays the name and location of all
 ;; the people in the world
 (ask me 'FEEL-THE-FORCE)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 4
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; creation of the ring of obfuscation that makes people who possess it invisible
+;; test the method:
+(define test-place (create-place 'test-place))
+(define visible-person (create-person 'visible test-place))
+(define invisible-person (create-person 'invisible test-place))
+(define ring (create-ring-of-obfuscation 'ring test-place))
+(ask invisible-person 'ADD-THING ring)
+
+(test-equal (ask invisible-person 'PEOPLE-AROUND) (list visible-person))
+(test-equal (ask visible-person 'PEOPLE-AROUND) '())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 5
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define person-1 (create-person 'person-1 test-place))
+(define person-2 (create-person 'person-2 test-place))
+(define wand-1 (create-wand 'wand-1 test-place))
+
+;; test method for wand to identify its caster based on location and possession
+;; of the item
+;; initially, this should return null since the wand has not been added yet
+(test-equal (ask wand-1 'CASTER) '())
+(ask person-1 'ADD-THING wand-1)
+(test-equal (ask wand-1 'CASTER) person-1)
+
+;; test that if the wand is zapped without any spells, a message is 
+;; printed but nothing happens
+(ask wand-1 'ZAP person-2)
+
+;; now add a spell to person-1 and test that it is used
+(define test-spell (create-spell 'test-spell test-place 
+     "incant-ing text"
+     (lambda (caster target)
+       (ask caster 'EMIT (list "Using test-spell, caster:"
+                               (ask caster 'NAME)
+                               ", target:"
+                               (ask target 'NAME))))))
+(ask person-1 'ADD-THING test-spell)
+(ask wand-1 'ZAP person-2)
+
+;; test wave method that uses the spell against a random person in the room
+(ask wand-1 'WAVE)

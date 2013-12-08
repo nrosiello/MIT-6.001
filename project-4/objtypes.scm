@@ -240,7 +240,9 @@
         
       'PEOPLE-AROUND        ; other people in room...
       (lambda ()
-	(delq self (find-all (ask self 'LOCATION) 'PERSON)))
+        (define (visible? person)
+          (null? (ask person 'HAS-A 'ring-of-obfuscation)))
+	      (filter visible? (delq self (find-all (ask self 'LOCATION) 'PERSON))))
         
       'STUFF-AROUND         ; stuff (non people) in room...
       (lambda ()
@@ -536,3 +538,62 @@
                                   (ask (ask person 'LOCATION) 'NAME))))))
         (for-each print-name-and-loc (all-people)))))
      person-part)))
+
+;;
+;; ring-of-obfuscation 
+;; a special kind of mobile-object that renders a person individual if they
+;; are carrying it
+(define (create-ring-of-obfuscation name location)
+  (create-instance ring-of-obfuscation name location))
+
+(define (ring-of-obfuscation self name location)
+  (let ((mobile-part (mobile-thing self name location)))
+    (make-handler
+     'ring-of-obfuscation
+     (make-methods)
+     mobile-part)))
+
+;;
+;; wand  
+;; a special kind of mobile-object that can be used to cast a spell
+
+(define (create-wand name location)
+  (create-instance wand name location))
+
+(define (random-list-entry l)
+  (if (null? l)
+    '()
+    (list-ref l (random (length l)))))
+
+(define (first-match predicate l)
+  (let ((matches (filter predicate l)))
+    (if (null? matches)
+      '()
+      (first matches))))
+
+(define (wand self name location)
+  (let ((mobile-part (mobile-thing self name location)))
+    (make-handler
+     'wand 
+     (make-methods
+       'ZAP (lambda (target)
+        (define caster (ask self 'CASTER))
+        (let ((spell (random-list-entry (ask caster 'HAS-A 'spell))))
+          (ask caster 'EMIT (list (ask caster 'NAME) "is waving a wand!"))
+          (if (null? spell)
+            (ask caster 'EMIT (list "nothing is happening because they have no spells!"))
+            (begin
+              (ask caster 'EMIT (list (ask spell 'INCANT)))
+              (ask spell 'USE caster target)))))
+       'CASTER (lambda ()
+        (let ((people (find-all (ask self 'LOCATION) 'PERSON))
+              (has-wand? (lambda (person) 
+                (not (null? (ask person 'HAS-A-THING-NAMED (ask self 'name)))))))
+         (first-match has-wand? people)))
+       'WAVE (lambda ()
+        (define caster (ask self 'caster))
+        (let ((target (random-list-entry (ask caster 'PEOPLE-AROUND))))
+          (if (null? target)
+            (ask caster 'EMIT (list "Nobody around to use the spell on!"))
+            (ask self 'ZAP target)))))
+     mobile-part)))
