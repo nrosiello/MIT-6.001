@@ -174,9 +174,8 @@
 
     (populate-players rooms)
 
-    ;uncomment after writing chosen one
-;    (create-chosen-one 'hairy-cdr (pick-random rooms)
-;		       (random-number 3) (random-number 3))
+    (create-chosen-one 'hairy-cdr (pick-random rooms)
+		       (random-number 3) (random-number 3))
     
     (set! me (create-avatar name (pick-random rooms)))
     (ask screen 'SET-ME me)

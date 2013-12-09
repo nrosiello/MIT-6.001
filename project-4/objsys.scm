@@ -567,4 +567,9 @@
 	  'handler))
       'not-a-handler))
 
-
+(define (repeat n proc)
+  (if (<= n 0)
+    'done
+    (begin 
+      (proc)
+      (repeat (-1+ n) proc))))

@@ -226,6 +226,7 @@
      (make-methods
       'STRENGTH (lambda () strength)
       'HEALTH (lambda () health)
+      'SET-HEALTH (lambda (h) (set! health h))
       'SAY
       (lambda (list-of-stuff)
 	(ask screen 'TELL-ROOM (ask self 'location)
@@ -298,12 +299,14 @@
 	      (ask self 'GO-EXIT exit)
 	      (begin (ask screen 'TELL-ROOM (ask self 'LOCATION)
 			  (list "No exit in" direction "direction"))
-		     #F))))
+		     #f))))
+      'NO-HEALTH (lambda (perp)
+  (ask self 'DIE perp))
       'SUFFER
       (lambda (hits perp)
 	(ask self 'SAY (list "Ouch!" hits "hits is more than I want!"))
 	(set! health (- health hits))
-	(if (<= health 0) (ask self 'DIE perp))
+	(if (<= health 0) (ask self 'NO-HEALTH perp))
 	health)
         
       'DIE          ; depends on global variable "death-exit"
@@ -692,3 +695,69 @@
       (lambda (spell) 
         (eq? (ask spell 'NAME) spell-name)))
      mobile-part)))
+
+;;
+;; chosen-one 
+;; a special wit-student that cannot die
+;;
+(define (create-chosen-one name birthplace activity miserly)
+  (create-instance chosen-one name birthplace activity miserly))
+
+(define (chosen-one self name birthplace activity miserly)
+  (let ((wit-student-part (wit-student self name birthplace activity miserly)))
+    (make-handler
+     'chosen-one
+     (make-methods
+      'INSTALL
+      (lambda ()
+	(ask wit-student-part 'INSTALL))
+      'NO-HEALTH (lambda (perp)
+  (ask self 'SAY (list "I am immortal!"))
+  (ask perp 'DIE self))
+      'DIE
+      (lambda (perp)
+	(ask wit-student-part 'DIE perp)))
+     wit-student-part)))
+
+;;
+;; healer 
+;; randomly gives health points out to people in the same room every clock tick.  
+;; inherits from autonomous-person
+;;
+(define (create-healer name birthplace activity miserly)
+  (create-instance healer name birthplace activity miserly))
+
+(define (healer self name birthplace activity miserly)
+  (let ((auto-part (autonomous-person self name birthplace activity miserly))
+        (health-given 0))
+    (make-handler
+     'healer
+     (make-methods
+      'INSTALL
+      (lambda ()
+	(ask auto-part 'INSTALL)
+	(ask clock 'ADD-CALLBACK
+	     (create-clock-callback 'heal-random self
+				    'HEAL-RANDOM)))
+      'GIVE-HEALTH (lambda (target)
+  (let ((before (ask target 'HEALTH)))
+    (ask target 'SET-HEALTH (1+ before))
+    (set! health-given (1+ health-given))
+    health-given))
+      'CHECK-EXHAUSTED (lambda ()
+  (if (> health-given 5)
+    (ask self 'DIE self)
+    'alive))
+      'HEAL-RANDOM (lambda ()
+  (let ((other-people (ask self 'PEOPLE-AROUND)))
+    (if (null? other-people)
+      'cant-heal 
+      (begin
+        (ask self 'GIVE-HEALTH (random-list-entry other-people))
+        (ask self 'CHECK-EXHAUSTED)))))
+      'DIE
+      (lambda (perp)
+	(ask clock 'REMOVE-CALLBACK self 'heal-random)
+	(ask auto-part 'DIE perp)
+      'dead))
+     auto-part)))

@@ -222,3 +222,45 @@
 
 ;; a counterspell does not allow the spell to be used
 (test-equal (ask test-spell 'USE person-1 person-with-counterspell) 'countered)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 10
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; test implementation of the chosen-one class
+(define test-chosen-one (create-chosen-one 'test-chosen-one test-place 10 10))
+(ask test-chosen-one 'SUFFER 10 person-1)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 11
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; add a new healer class to the system:
+;; the healer is an autonomous person that, at every clock tick, randomly chooses
+;; a player in the room and gives them an additional health point.  the healer dies
+;; after it has given out 5 health points.
+;;
+;; the class inherits from the autonomous-person class.  it has an internal variable
+;; that keeps track of the total number of health points it has given out.  there
+;; is a new method, GIVE-HEALTH, that adds a health point to the person that is
+;; given as an argument, in addition to incrementing the internal health given
+;; state variable.  
+;; there is also a method, HEAL-RANDOM, that attempts to find a person in the current
+;; room, and then heals them using GIVE-HEALTH.
+;; finally, there is a method CHECK-EXHAUSTED that will check if the healer should 
+;; die because it has exhausted its health points to give out.
+
+;; testing:
+;; ensure that give-health increments the target health
+(define healthy-person (create-person 'healthy-person test-place))
+(define test-healer (create-healer 'test-healer test-place 10 10))
+
+(define before-health (ask healthy-person 'HEALTH))
+(ask test-healer 'GIVE-HEALTH healthy-person)
+(define after-health (ask healthy-person 'HEALTH))
+(test-equal (1+ before-health) after-health)
+
+;; ensure that check-exhausted kills the healer if they have given out 5 points 
+(test-equal (ask test-healer 'CHECK-EXHAUSTED) 'alive)
+(repeat 5 (lambda () (ask test-healer 'GIVE-HEALTH healthy-person)))
+(test-equal (ask test-healer 'CHECK-EXHAUSTED) 'dead)
