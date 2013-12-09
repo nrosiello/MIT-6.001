@@ -197,3 +197,28 @@
 
 (define test-wit-student (create-wit-student 'test-wit-student test-place 10 10))
 (ask test-wit-student 'ATTEMPT-ZAP)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 8
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define test-wit-professer (create-wit-professor 'test-wit-professor test-place 10 10))
+(ask test-wit-professer 'ATTEMPT-TEACH)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Exercise 9
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define person-with-counterspell (create-person 'person-with-counterspell test-place))
+(ask person-with-counterspell 'ADD-THING (create-counterspell 'test-counterspell
+                                            test-place 'test-spell))
+
+;; using a spell on a regular person should work as expected
+(ask test-spell 'USE person-1 person-2)
+
+;; check that a spell can identify if the target has a counterspell
+(test-equal (ask test-spell 'HAS-COUNTERSPELL? person-1) #f)
+(test-equal (ask test-spell 'HAS-COUNTERSPELL? person-with-counterspell) #t)
+
+;; a counterspell does not allow the spell to be used
+(test-equal (ask test-spell 'USE person-1 person-with-counterspell) 'countered)

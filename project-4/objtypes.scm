@@ -470,7 +470,15 @@
       (lambda () action)
       'USE
       (lambda (caster target)
-	(action caster target)))
+  (if (ask self 'HAS-COUNTERSPELL? target)
+    'countered
+    (action caster target)))
+      'HAS-COUNTERSPELL? 
+      (lambda (target)
+  (if (ask target 'IS-A 'container) 
+    (not (null? (filter (lambda (counterspell) (ask counterspell 'COUNTERS? self))
+          (ask target 'HAS-A 'counterspell))))
+    #f)))
      mobile-part)))
 
 (define (clone-spell spell newloc)
@@ -630,3 +638,57 @@
 	(ask clock 'REMOVE-CALLBACK self 'attempt-zap)
 	(ask auto-part 'DIE perp)))
      auto-part)))
+
+;;
+;; wit-professor 
+;; a subclass of wit-student, but also tries to teach wit-students spells
+;; every clock tick
+;;
+(define (create-wit-professor name birthplace activity miserly)
+  (create-instance wit-professor name birthplace activity miserly))
+
+(define (is-a-wit-student? obj)
+  (not (null? (ask obj 'IS-A 'wit-student))))
+
+(define (wit-professor self name birthplace activity miserly)
+  (let ((wit-student-part (wit-student self name birthplace activity miserly)))
+    (make-handler
+     'wit-professor
+     (make-methods
+      'INSTALL
+      (lambda ()
+	(ask wit-student-part 'INSTALL)
+	(ask clock 'ADD-CALLBACK
+	     (create-clock-callback 'attempt-teach self
+				    'ATTEMPT-TEACH)))
+      'ATTEMPT-TEACH
+      (lambda ()
+  (let ((student (pick-random (filter is-a-wit-student? (ask self 'PEOPLE-AROUND)))))
+    (if student
+	      (ask student 'ADD-THING
+             (clone-spell (pick-random (ask chamber-of-stata 'THINGS)) 
+                          (ask student 'LOCATION)))
+        'no-student-to-teach)))
+      'DIE
+      (lambda (perp)
+	(ask clock 'REMOVE-CALLBACK self 'attempt-teach)
+	(ask wit-student-part 'DIE perp)))
+     wit-student-part)))
+
+;;
+;; counterspell
+;; a counterspell will prevent a spell from taking effect if the target possesses
+;; the counterspell
+;;
+(define (create-counterspell name location spell-name)
+  (create-instance counterspell name location spell-name))
+
+(define (counterspell self name location spell-name)
+  (let ((mobile-part (mobile-thing self name location)))
+    (make-handler
+     'counterspell
+     (make-methods
+      'COUNTERS? 
+      (lambda (spell) 
+        (eq? (ask spell 'NAME) spell-name)))
+     mobile-part)))
