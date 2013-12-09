@@ -440,7 +440,7 @@
       (lambda ()
 	(if (= (random hunger) 0)
 	    (let ((people (ask self 'PEOPLE-AROUND)))
-	      (if people
+	      (if (not (null? people))
 		  (let ((victim (pick-random people)))
 		    (ask self 'EMIT
 			 (list (ask self 'NAME) "takes a bite out of"
