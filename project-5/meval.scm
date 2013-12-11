@@ -75,28 +75,6 @@
 		     (make-begin (cdr (first-cond-clause clauses)))
 		     (make-cond (rest-cond-clauses clauses)))))))
 
-(define input-prompt ";;; M-Eval input:")
-(define output-prompt ";;; M-Eval value:")
-
-(define (driver-loop)
-  (prompt-for-input input-prompt)
-  (let ((input (do-meval-read)))
-    (if (eq? input '**quit**)
-	'meval-done
-	(let ((output (m-eval input the-global-environment)))
-	  (announce-output output-prompt)
-	  (display output)
-	  (driver-loop)))))
-
-(define (prompt-for-input string)
-  (newline) (newline) (display string) (newline))
-
-(define (announce-output string)
-  (newline) (display string) (newline))
-
-(define *meval-warn-define* #t) ; print warnings?
-(define *in-meval* #f)          ; evaluator running
-
 ;;;;;;;;;;;;;;;;;; Code For Problem 9 ;;;;;;;;;;;;;;;;;;;;;;
 
       ; type: nil -> list<symbol>
@@ -196,60 +174,3 @@ some test cases:
 (fresh-symbol '(+ not z val y x))
 ;Value: +notzvalyxunused
 |#
-
-;;;;;;;;;;;;;;;;;;;;; edwin MAGIC - within the darkness magic lurks
-
-(load-option 'format)
-(define (warn-if-defined-in-regular-scheme var)
-  (if (and (not *in-meval*)
-	   *meval-warn-define*
-	   (environment-bound? (the-environment) var))
-      (format #t ";Warning: ~A is also bound in normal scheme.~%; Did you intend to define inside Meval?~%"
-	      var)))
-
-(define meval-mode 
-  (if (not (environment-bound? (the-environment) 'meval-mode))
-      (in-package (->environment '(edwin))
-	(if edwin-editor
-	    (make-mode 'Meval #f "Meval" #f "repl is in Meval mode"
-		       (lambda (buffer) 'done))
-	    #f))
-      meval-mode))
-
-(define set-meval-mode!
-  (in-package (->environment '(edwin))
-    (lambda ()
-      (if edwin-editor
-	  (let ((sm (->mode "scheme"))
-		(repl (->mode "inferior-repl"))
-		(me (->mode "Meval")))
-	    (for-each (lambda (buffer)
-			(if (or (eq? sm (buffer-major-mode buffer))
-				(eq? repl (buffer-major-mode buffer)))
-			    (enable-buffer-minor-mode! buffer me)))
-		      (buffer-list)))
-	  'nothing-to-do))))
-
-(define clear-meval-mode!
-  (in-package (->environment '(edwin))
-    (lambda ()
-      (if edwin-editor
-	  (let ((sm (->mode "scheme"))
-		(repl (->mode "inferior-repl"))
-		(me (->mode "Meval")))
-	    (for-each (lambda (buffer)
-			(if (or (eq? sm (buffer-major-mode buffer))
-				(eq? repl (buffer-major-mode buffer)))
-			    (disable-buffer-minor-mode! buffer me)))
-		      (buffer-list)))
-	  'nothing-to-do))))
-
-(define (do-meval-read)
-  (if *in-meval*
-      (read)
-      (dynamic-wind (lambda () (set! *in-meval* #t) (set-meval-mode!))
-		    (lambda () (read))
-		    (lambda () (set! *in-meval* #f) (clear-meval-mode!)))))
-
-;;;;;;;;;;;;;;;;;;; end gift
-

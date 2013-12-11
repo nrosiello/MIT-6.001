@@ -37,7 +37,9 @@
 (define (if? exp) (tagged-list? exp 'if))
 (define (if-predicate exp) (cadr exp)) 
 (define (if-consequent exp) (caddr exp)) 
-(define (if-alternative exp) (cadddr exp))
+(define (if-alternative exp) (if (null? (cdddr exp))
+   #f
+   (cadddr exp)))
 (define (make-if pred conseq alt) (list 'if pred conseq alt))
 
 (define (cond? exp) (tagged-list? exp 'cond))
