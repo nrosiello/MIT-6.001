@@ -12,6 +12,8 @@
         ((definition? exp) (eval-definition exp env))
         ((unset!? exp) (eval-unset! exp env))
         ((if? exp) (eval-if exp env))
+        ((or? exp) (eval-or exp env))
+        ((and? exp) (eval-and exp env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp) (lambda-body exp) env))
         ((begin? exp) (eval-sequence (begin-actions exp) env))
@@ -40,6 +42,22 @@
         (else (cons (m-eval (first-operand exps) env)
                     (list-of-values (rest-operands exps) env)))))
 
+(define (eval-or expr env)
+  (if (no-predicates? expr)
+    #f
+    (let ((predicate (m-eval (first-predicate expr) env)))
+      (if predicate
+        predicate
+        (m-eval (pop-predicate expr) env)))))
+
+(define (eval-and expr env)
+  (cond ((no-predicates? expr) #t)
+        ((one-predicate? expr) (m-eval (first-predicate expr) env))
+        (else (let ((predicate (m-eval (first-predicate expr) env)))
+                (if predicate
+                  (m-eval (pop-predicate expr) env)
+                  #f)))))
+
 (define (eval-let* expr env)
   (if (null? (let*-bound-variables expr))
     (eval-sequence (let*-expr expr) env)
@@ -56,13 +74,23 @@
       (define-variable! (car vars) (m-eval (car vals) env) env)
       (eval-var-list (cdr vars) (cdr vals) env))))
       
-  
+;; do-while evaluator from problem 6 using de-sugaring
 (define (eval-do-while expr env)
-  (for-each (lambda (i) (m-eval i env))
-            (do-while-exps expr))
-  (if (m-eval (do-while-predicate expr) env)
-    (m-eval expr env)
-    'done))
+  (m-eval (desugar-do-while expr) env))
+
+(define (desugar-do-while expr)
+  `(begin
+     ,@(do-while-exps expr)
+     (if ,(do-while-predicate expr)
+      ,expr
+      'done)))
+
+;; do-while evaluator from problem 3
+;(define (eval-do-while expr env)
+;  (eval-sequence (do-while-exps expr) env)
+;  (if (m-eval (do-while-predicate expr) env)
+;    (m-eval expr env)
+;    'done))
 
 (define (eval-if exp env)
   (if (m-eval (if-predicate exp) env)

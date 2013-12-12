@@ -113,3 +113,38 @@
 
 (m-eval-global '(unset! z))
 (test-equal (m-eval-global 'z) 4)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 6: de-sugared do-while loop
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; since this only re-defines the implementation of do-while evaluation,
+;; the tests from exercise 3 are still valid
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 7: and/or special forms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; tests for helper functions
+(test-equal (pop-predicate '(and 3 2 1)) '(and 2 1))
+(test-equal (first-predicate '(and 3 2 1)) '3)
+
+(test-equal (no-predicates? '(and 3 2 1)) #f)
+(test-equal (no-predicates? '(and)) #t)
+
+(test-equal (one-predicate? '(and 3 2 1)) #f)
+(test-equal (one-predicate? '(and)) #f)
+(test-equal (one-predicate? '(and (+ 3 2))) #t)
+
+;; test or
+(test-equal (m-eval-global '(or)) #f)
+(test-equal (m-eval-global '(or #f)) #f)
+(test-equal (m-eval-global '(or #f #t)) #t)
+(test-equal (m-eval-global '(or #f (+ 1 4))) 5)
+
+;; test and
+(test-equal (m-eval-global '(and)) #t)
+(test-equal (m-eval-global '(and 1)) 1)
+(test-equal (m-eval-global '(and 1 #f)) #f)
+(test-equal (m-eval-global '(and 1 2 (* 3 2))) 6)
+(test-equal (m-eval-global '(and 1 2 3 #f 4 5)) #f)

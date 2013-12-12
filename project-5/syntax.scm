@@ -93,3 +93,10 @@
 
 (define (unset!-variable expr) (cadr expr))
 (define (unset!? expr) (tagged-list? expr 'unset!))
+
+(define (pop-predicate expr) (cons (car expr) (cddr expr)))
+(define (first-predicate expr) (second expr))
+(define (no-predicates? expr) (eq? (length expr) 1))
+(define (one-predicate? expr) (eq? (length expr) 2))
+(define (or? expr) (tagged-list? expr 'or))
+(define (and? expr) (tagged-list? expr 'and))
