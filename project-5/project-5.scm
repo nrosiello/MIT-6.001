@@ -33,3 +33,53 @@
 (test-equal (m-eval-global '(if (< 3 4) (+ 1 2))) 3)
 (test-equal (m-eval-global '(if (< 5 4) (+ 1 2))) #f)
 (test-equal (m-eval-global '(if #f #t (* 2 6))) 12)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 3: addition of the do-while loop special form
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; tests for the do-while selectors
+(define do-while-1 '(do (+ 1 3)
+                       'a
+                       'b
+                       while (< 3 4)))
+(test-equal (do-while-exps do-while-1) '((+ 1 3) 'a 'b))
+(test-equal (do-while-predicate do-while-1) '(< 3 4))
+
+;; tests for the do-while loop
+(m-eval-global '(define x '()))
+(test-equal (m-eval-global '(do (set! x (cons '* x))
+              (+ 1 4)
+              (* 3 4)
+              while (< (length x) 3))) 'done)
+(test-equal (m-eval-global 'x) '(* * *))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 4: the let* special form
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; confirm regular let behavior
+(m-eval-global '(define i 1))
+(define let-ex-cdr '(((i 3)
+                      (j (* 5 i)))
+                      (+ 4 5)
+                      (list i j)))
+(define let-ex (cons 'let let-ex-cdr))
+(define let*-ex (cons 'let* let-ex-cdr))
+(test-equal (m-eval-global let-ex) '(3 5)) 
+
+;; identify a let* expression
+(test-equal (let*? let*-ex) #t)
+(test-equal (let*? let-ex) #f)
+
+;; extract the parts of a let expression
+(test-equal (let*-expr let*-ex) '((+ 4 5)
+                                  (list i j)))
+(test-equal (let*-bound-variables let*-ex) '(i j))
+(test-equal (let*-values let*-ex) '(3 (* 5 i)))
+
+;; expression to access the redefined value of i
+(test-equal (m-eval-global let*-ex) '(3 15)) 
+
+;; let* with no bound variables
+(test-equal (m-eval-global '(let* () (+ 3 4) (- 4 2))) 2)

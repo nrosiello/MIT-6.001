@@ -16,7 +16,8 @@
         ((begin? exp) (eval-sequence (begin-actions exp) env))
         ((cond? exp) (m-eval (cond->if exp) env))
 	((let? exp) (m-eval (let->application exp) env))
-;	((do-while? exp) (eval-do-while exp env))
+	((let*? exp) (eval-let* exp env))
+	((do-while? exp) (eval-do-while exp env))
         ((application? exp)
          (m-apply (m-eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -37,6 +38,30 @@
   (cond ((no-operands? exps) '())
         (else (cons (m-eval (first-operand exps) env)
                     (list-of-values (rest-operands exps) env)))))
+
+(define (eval-let* expr env)
+  (if (null? (let*-bound-variables expr))
+    (eval-sequence (let*-expr expr) env)
+    (let ((let*-env (extend-environment '() '() env)))
+      (eval-var-list (let*-bound-variables expr)
+                     (let*-values expr)
+                     let*-env)
+      (eval-sequence (let*-expr expr) let*-env))))
+
+(define (eval-var-list vars vals env)
+  (if (null? vars)
+    #t
+    (begin 
+      (define-variable! (car vars) (m-eval (car vals) env) env)
+      (eval-var-list (cdr vars) (cdr vals) env))))
+      
+  
+(define (eval-do-while expr env)
+  (for-each (lambda (i) (m-eval i env))
+            (do-while-exps expr))
+  (if (m-eval (do-while-predicate expr) env)
+    (m-eval expr env)
+    'done))
 
 (define (eval-if exp env)
   (if (m-eval (if-predicate exp) env)

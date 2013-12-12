@@ -81,3 +81,12 @@
 (define (or? expr) (tagged-list? expr 'or))
 (define or-exprs cdr)
 (define (make-or exprs) (cons 'or exprs))
+
+(define (do-while-exps expr) (sublist expr 1 (- (length expr) 2)))
+(define (do-while-predicate expr) (list-ref expr (- (length expr) 1)))
+(define (do-while? expr) (tagged-list? expr 'do))
+
+(define (let*? expr) (tagged-list? expr 'let*))
+(define (let*-bound-variables expr) (let-bound-variables expr))
+(define (let*-values expr) (let-values expr))
+(define (let*-expr expr) (cddr expr))
