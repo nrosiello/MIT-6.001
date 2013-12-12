@@ -83,3 +83,33 @@
 
 ;; let* with no bound variables
 (test-equal (m-eval-global '(let* () (+ 3 4) (- 4 2))) 2)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 5: unset! special form
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; helper function to extract unset! variable
+(test-equal (unset!-variable '(unset! x)) 'x)
+
+;; binding variable functions to manage the environment state
+(define has-been-set-binding '(x 3 2 1))
+(unset-binding-value! has-been-set-binding)
+(test-equal has-been-set-binding '(x 2 1))
+
+(define has-not-been-set-binding '(x 5))
+(unset-binding-value! has-not-been-set-binding)
+(test-equal has-not-been-set-binding '(x 5))
+
+;; test the unset! function
+(m-eval-global '(begin
+                  (define z 4)
+                  (set! z 5)
+                  (set! z 6)
+                  (unset! z)))
+(test-equal (m-eval-global 'z) 5)
+
+(m-eval-global '(unset! z))
+(test-equal (m-eval-global 'z) 4)
+
+(m-eval-global '(unset! z))
+(test-equal (m-eval-global 'z) 4)

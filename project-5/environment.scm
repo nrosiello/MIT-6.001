@@ -24,7 +24,10 @@
 (define binding-value cadr)
 (define binding-search (association-procedure eq? car))
 (define (set-binding-value! binding val)
-  (set-car! (cdr binding) val))
+  (set-cdr! binding (cons val (cdr binding))))
+(define (unset-binding-value! binding)
+  (if (not (null? (cddr binding)))
+    (set-cdr! binding (cddr binding))))
 
 ; frames
 (define (make-frame variables values)
@@ -55,12 +58,22 @@
 	    (lookup-variable-value var (enclosing-environment env))))))
 
 (define (set-variable-value! var val env)
+  (modify-variable-value! (lambda (binding val) 
+                            (set-binding-value! binding val))
+                          var val env))
+
+(define (unset-variable-value! var env)
+  (modify-variable-value! (lambda (binding val) 
+                            (unset-binding-value! binding))
+                          var '() env))
+
+(define (modify-variable-value! proc var val env)
   (if (eq? env the-empty-environment)
       (error "Unbound variable -- LOOKUP" var)
       (let* ((frame (first-frame env))
 	     (binding (find-in-frame var frame)))
 	(if binding
-	    (set-binding-value! binding val)
+	    (proc binding val)
 	    (set-variable-value! var val (enclosing-environment env))))))
 
 (define (define-variable! var val env)

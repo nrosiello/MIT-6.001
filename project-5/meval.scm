@@ -10,6 +10,7 @@
         ((quoted? exp) (text-of-quotation exp))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
+        ((unset!? exp) (eval-unset! exp env))
         ((if? exp) (eval-if exp env))
         ((lambda? exp)
          (make-procedure (lambda-parameters exp) (lambda-body exp) env))
@@ -77,6 +78,9 @@
   (set-variable-value! (assignment-variable exp)
                        (m-eval (assignment-value exp) env)
                        env))
+
+(define (eval-unset! expr env)
+  (unset-variable-value! (unset!-variable expr) env))
 
 (define (eval-definition exp env)
   (define-variable! (definition-variable exp)

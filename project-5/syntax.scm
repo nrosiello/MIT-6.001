@@ -90,3 +90,6 @@
 (define (let*-bound-variables expr) (let-bound-variables expr))
 (define (let*-values expr) (let-values expr))
 (define (let*-expr expr) (cddr expr))
+
+(define (unset!-variable expr) (cadr expr))
+(define (unset!? expr) (tagged-list? expr 'unset!))
