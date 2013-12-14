@@ -5,6 +5,7 @@
 (load "meval.scm")
 (load "syntax.scm")
 (load "environment.scm")
+(load "../common/test.scm")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; exercise 1: exploring meval and adding new primitive procedures
@@ -183,3 +184,41 @@
 ;; test the case function conversion to a cond statement and evaluation
 (test-equal (m-eval-global case-ex) 3)
 (test-equal (m-eval-global case-ex-else) "world")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 9: avoiding name capture
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; test simple name list creation
+(test-equal (names-used-in "hello") '())
+(test-equal (names-used-in '(x)) '(x))
+(test-equal (names-used-in '('a)) '())
+(test-equal (names-used-in '(or a b)) '(b a))
+(test-equal (names-used-in '(and a b)) '(b a))
+(test-equal (names-used-in '(unset! x)) '(x))
+
+;; test compound expression name creation
+(test-equal (names-used-in
+              '(lambda (x y) (+ 2 3)))
+            '(+ y x))
+(test-equal (names-used-in
+  '(let* ((x 4)
+  	 (y val))
+     (if (or z (not z))
+     	(+ x y)
+	    7)))
+            '(+ not z val y x))
+(test-equal (names-used-in
+  '(do (display (* loop x x))
+       (set! x (+ x 1))
+     while (< x n)))
+            '(+ loop * display n x <))
+(test-equal (names-used-in 
+  '(case a
+     ((b c) d)
+     (else e)))
+            '(e d c a b eq?))
+
+;; test creation of a fresh-symbol given a name list
+(test-equal (fresh-symbol '(+ not z val y x))
+            (quote +notzvalyxunused))

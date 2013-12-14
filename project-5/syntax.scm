@@ -100,6 +100,8 @@
 (define (one-predicate? expr) (eq? (length expr) 2))
 (define (or? expr) (tagged-list? expr 'or))
 (define (and? expr) (tagged-list? expr 'and))
+(define (and-body expr) (cdr expr))
+(define (or-body expr) (cdr expr))
 
 (define (extract-case-val expr) (second expr))
 (define (extract-case-exprs expr) (cddr expr)) 

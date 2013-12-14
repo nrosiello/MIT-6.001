@@ -175,16 +175,13 @@
 
 ; type: expression -> list<symbol>
 (define (names-used-in exp)
-  (cond ((self-evaluating? exp) 
-	 ... )
-        ((variable? exp) 
-	 ... )
+  (cond ((self-evaluating? exp) (no-names))
+        ((variable? exp) (list exp))
         ((quoted? exp) (no-names))
         ((assignment? exp) 
 	 (merge-names (names-used-in (assignment-variable exp))
 		      (names-used-in (assignment-value exp))))
-;	((unassignment? exp)
-;	 ... )
+	((unset!? exp) (list (unset!-variable exp))) 
         ((definition? exp)
 	 (merge-names (names-used-in (definition-variable exp))
 		      (names-used-in (definition-value exp))))
@@ -192,48 +189,23 @@
 	 (merge-names (names-used-in (if-predicate exp))
   	   (merge-names (names-used-in (if-consequent exp))
 			(names-used-in (if-alternative exp)))))
-        ((lambda? exp)
-	 ... )
+        ((lambda? exp) 
+   (merge-names (names-used-in (lambda-parameters exp))
+                (names-used-in (lambda-body exp))))
         ((begin? exp) (used-in-sequence (cdr exp)))
         ((cond? exp) (names-used-in (cond->if exp)))
 	((let? exp) (names-used-in (let->application exp)))
-;       ((let*? exp)
-;	 ... )
-;	((and? exp)
-;	 ... )
-;	((or? exp)
-;	 ... )
-;	((do-while? exp)
-;	 ... )
-;	((case? exp)
-;	 ... )
+  ((let*? exp) 
+	 (merge-names (names-used-in (let*-bound-variables exp))
+  	   (merge-names (names-used-in (let*-values exp))
+			(names-used-in (let*-expr exp)))))
+	((and? exp) (names-used-in (and-body exp)))
+	((or? exp) (names-used-in (or-body exp)))
+	((do-while? exp)
+   (merge-names (names-used-in (do-while-predicate exp))
+                (names-used-in (do-while-exps exp))))
+	((case? exp) (names-used-in (case->cond exp)))
         ((application? exp)
 	 (merge-names (names-used-in (operator exp))
 		      (used-in-sequence (operands exp))))
         (else (error "Unknown expression type -- NAMES-USED-IN" exp))))
-
-
-#|
-some test cases:
-
-(names-used-in
- '(do (display (* loop x x))
-      (set! x (+ x 1))
-    while (< x n)))
-;Value: (n < + x loop * display)
-
-(names-used-in
- '(lambda (x y) (+ 2 3)))
-;Value: (+ y x)
-
-(names-used-in
- '(let* ((x 4)
-	 (y val))
-    (if (or z (not z))
-	(+ x y)
-	7)))
-;Value: (+ not z val y x)
-
-(fresh-symbol '(+ not z val y x))
-;Value: +notzvalyxunused
-|#
