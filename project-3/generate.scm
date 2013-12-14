@@ -1,5 +1,3 @@
-(load "project-3/search.scm")
-
 ;;;; generate.scm
 
 ;;;; This file, part of project 3, just contains things like the

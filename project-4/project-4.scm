@@ -3,9 +3,10 @@
 ;; Nick Rosiello
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load "project-4/objsys.scm")
-(load "project-4/objtypes.scm")
-(load "project-4/setup.scm")
+(load "objsys.scm")
+(load "objtypes.scm")
+(load "setup.scm")
+(load "../common/test.scm")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Warmup 1

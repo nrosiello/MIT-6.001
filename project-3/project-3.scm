@@ -1,3 +1,11 @@
+;;
+;; project 3
+;;
+
+(load "../common/test.scm")
+(load "search.scm")
+(load "generate.scm")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; warmup exercise 1: add to index
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1,4 +1,9 @@
+;;
 ;; project 2
+;;
+
+(load "prisoner.scm")
+(load "../common/test.scm")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; problem 1: extract entry function
