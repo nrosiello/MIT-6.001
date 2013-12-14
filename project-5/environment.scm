@@ -93,6 +93,7 @@
         (list 'list list)
         (list 'cadr cadr)
         (list 'cddr cddr)
+        (list 'eq? eq?)
 	(list 'set-car! set-car!)
 	(list 'set-cdr! set-cdr!)
 	(list 'length length)

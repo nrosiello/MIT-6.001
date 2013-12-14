@@ -18,6 +18,7 @@
          (make-procedure (lambda-parameters exp) (lambda-body exp) env))
         ((begin? exp) (eval-sequence (begin-actions exp) env))
         ((cond? exp) (m-eval (cond->if exp) env))
+        ((case? exp) (m-eval (case->cond exp) env))
 	((let? exp) (m-eval (let->application exp) env))
 	((let*? exp) (eval-let* exp env))
 	((do-while? exp) (eval-do-while exp env))
@@ -41,6 +42,11 @@
   (cond ((no-operands? exps) '())
         (else (cons (m-eval (first-operand exps) env)
                     (list-of-values (rest-operands exps) env)))))
+
+(define (case->cond case-expr)
+  (let ((val (extract-case-val case-expr))
+        (exprs (extract-case-exprs case-expr)))
+    `(cond ,@(case-exprs->cond-exprs exprs val))))
 
 (define (eval-or expr env)
   (if (no-predicates? expr)

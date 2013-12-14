@@ -148,3 +148,38 @@
 (test-equal (m-eval-global '(and 1 #f)) #f)
 (test-equal (m-eval-global '(and 1 2 (* 3 2))) 6)
 (test-equal (m-eval-global '(and 1 2 3 #f 4 5)) #f)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; exercise 8: de-sugaring the case statement
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define case-ex '(case 'message
+                   (('TYPE1 'TYPE2 'TYPE3) (* 3 2) 
+                                (+ 1 1))
+                   (('message) (+ 1 2))
+                   (else (+ 1 3))))
+
+(define case-ex-else '(case 'a
+                   (('b 'c 'd) "hello")
+                   (else "world")))
+
+;; test the functions to extract parts of case expressions
+(test-equal (extract-case-val case-ex) '(quote message))
+(test-equal (extract-case-exprs case-ex) 
+  '((((quote type1) (quote type2) (quote type3)) (* 3 2) (+ 1 1))
+    (((quote message)) (+ 1 2)) 
+    (else (+ 1 3))))
+
+;; test identification of a case expression
+(test-equal (case? case-ex) #t)
+(test-equal (case? '(and 3 4)) #f)
+
+;; test the creation of the cond predicate statements
+(test-equal (case-var->cond-pred '(x y z) 'a)
+            '(or (eq? x a) (eq? y a) (eq? z a)))
+(test-equal (case-var->cond-pred 'else 'a)
+            'else)
+
+;; test the case function conversion to a cond statement and evaluation
+(test-equal (m-eval-global case-ex) 3)
+(test-equal (m-eval-global case-ex-else) "world")

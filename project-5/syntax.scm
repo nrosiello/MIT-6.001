@@ -100,3 +100,16 @@
 (define (one-predicate? expr) (eq? (length expr) 2))
 (define (or? expr) (tagged-list? expr 'or))
 (define (and? expr) (tagged-list? expr 'and))
+
+(define (extract-case-val expr) (second expr))
+(define (extract-case-exprs expr) (cddr expr)) 
+(define (case? expr) (tagged-list? expr 'case))
+(define (case-var->cond-pred vars val)
+  (if (eq? vars 'else)
+    'else
+    `(or ,@(map (lambda (i) `(eq? ,i ,val)) vars))))
+(define (case-exprs->cond-exprs exprs val)
+  (map (lambda (i) 
+         (cons (case-var->cond-pred (car i) val) 
+               (cdr i))) 
+       exprs))
